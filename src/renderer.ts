@@ -4,7 +4,7 @@ import { ReadonlyJSONObject } from '@lumino/coreutils'
 import { Widget } from '@lumino/widgets'
 import { ContextManager } from './manager'
 
-export declare interface KernelProxy {
+export declare interface IKernelProxy {
   // copied from https://github.com/jupyterlab/jupyterlab/blob/master/packages/services/src/kernel/default.ts#L605
   registerCommTarget(
     targetName: string,
@@ -85,7 +85,7 @@ export class BokehJSExec extends Widget implements IRenderMime.IRenderer {
       await poll(() => typeof Bokeh !== 'undefined')
       this._document_id = metadata.id as string
       const { _manager } = this
-      const kernel_proxy: KernelProxy = {
+      const kernel_proxy: IKernelProxy = {
         registerCommTarget(
           targetName: string,
           callback: (comm: Kernel.IComm, msg: KernelMessage.ICommOpenMsg) => void
@@ -112,11 +112,8 @@ export class BokehJSExec extends Widget implements IRenderMime.IRenderer {
       const d = document.createElement('div')
       d.innerHTML = data
       const script_attrs = d.children[0].attributes
-      for (let i = 0; i < script_attrs.length; i++) {
-        this._script_element.setAttribute(
-          script_attrs[i].name,
-          script_attrs[i].value
-        )
+      for (const attr of script_attrs) {
+        this._script_element.setAttribute(attr.name, attr.value)
       }
       this._script_element.textContent = d.textContent
     }
