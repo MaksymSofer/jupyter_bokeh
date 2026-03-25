@@ -14,7 +14,7 @@ type Receiver = any
 type Fragment = any
 type HasProps = any
 
-const { values } = Object
+const { keys, values } = Object
 
 const version_range = `^${version}`
 
@@ -24,24 +24,24 @@ export type RenderBundle = {
   div: string
 }
 
-export interface Ref {
+export interface IRef {
   id: string
 }
 
-export interface DocumentChanged {
+export interface IDocumentChanged {
   event: 'jsevent'
   kind: string
 }
 
-export interface ModelChanged extends DocumentChanged {
+export interface IModelChanged extends IDocumentChanged {
   event: 'jsevent'
   kind: 'ModelChanged'
-  model: Ref
+  model: IRef
   new: unknown
   attr: string
 }
 
-export interface MessageSent extends DocumentChanged {
+export interface IMessageSent extends IDocumentChanged {
   event: 'jsevent'
   kind: 'MessageSent'
   msg_data: {
@@ -167,8 +167,8 @@ export class BokehView extends DOMWidgetView {
   }
 
   private _combine_events(
-    new_msg: ModelChanged | MessageSent
-  ): (ModelChanged | MessageSent)[] {
+    new_msg: IModelChanged | IMessageSent
+  ): (IModelChanged | IMessageSent)[] {
     const filtered = this._msgs.filter((msg) => {
       if (new_msg.kind !== msg.kind) {
         return true
@@ -192,7 +192,7 @@ export class BokehView extends DOMWidgetView {
     return filtered
   }
 
-  private _send(msg: ModelChanged | MessageSent): void {
+  private _send(msg: IModelChanged | IMessageSent): void {
     if (!this._idle && this._combine && this.model.get('combine_events')) {
       // Queue event and drop previous events on same model attribute
       this._msgs = this._combine_events(msg)
@@ -208,7 +208,7 @@ export class BokehView extends DOMWidgetView {
       return
     }
     const { Serializer } = bk_require('core/serialization')
-    const references: Map<HasProps, Ref> = new Map()
+    const references: Map<HasProps, IRef> = new Map()
     for (const model of event.document._all_models.values()) {
       references.set(model, model.ref())
     }
@@ -229,7 +229,7 @@ export class BokehView extends DOMWidgetView {
       const { payload } = content
       this._receiver.consume(payload != null ? payload : buffers[0].buffer)
       const comm_msg = this._receiver.message
-      if (comm_msg != null && Object.keys(comm_msg.content).length > 0) {
+      if (comm_msg != null && keys(comm_msg.content).length > 0) {
         this._blocked = true
         try {
           this._document.apply_json_patch(comm_msg.content, comm_msg.buffers)
